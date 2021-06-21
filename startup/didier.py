@@ -1,3 +1,4 @@
+from database.utils import create_all_tables
 from data.snipe import Snipe
 from discord.ext import commands, ipc
 from dislash import InteractionClient
@@ -37,6 +38,9 @@ class Didier(commands.Bot):
 
         # Load all extensions
         self.init_extensions()
+
+        # Initialize database tables
+        create_all_tables()
 
         # Check missing files
         check_all()
