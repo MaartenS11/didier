@@ -4,6 +4,8 @@ from typing import Set
 
 
 # TODO fill in non-nulls everywhere
+# TODO comments
+
 class BankAccount(Base):
     __tablename__ = "currencytable"
 
