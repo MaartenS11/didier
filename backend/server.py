@@ -1,9 +1,11 @@
+from werkzeug.exceptions import abort
+
 from .error_handlers import handler_404, handler_422
 from .routes.dm import dm_blueprint
 from .routes.ping import ping_blueprint
 from .routes.stats import stats_blueprint
 from functions.database import custom_commands
-from quart import Quart, jsonify
+from quart import Quart, jsonify, Response
 from quart_cors import cors
 
 
@@ -36,12 +38,12 @@ async def get_custom_command(command_id):
         command_id = int(command_id)
     except ValueError:
         # Id is not an int
-        return unprocessable_entity("Parameter id was not a valid integer.")
+        abort(422, "Parameter id was not a valid integer.")
 
     command = custom_commands.get_by_id(command_id)
 
     if command is None:
-        return handler_404("")
+        abort(404)
 
     return jsonify(command)
 
