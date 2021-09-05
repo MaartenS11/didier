@@ -50,7 +50,9 @@ class CommandStats(Base):
     __tablename__ = "command_stats"
 
     day = Column(Date, primary_key=True)
-    amount = Column(Integer)
+    commands = Column(Integer, default=0)
+    slash_commands = Column(Integer, default=0)
+    context_menus = Column(Integer, default=0)
 
 
 class CustomCommand(Base):
