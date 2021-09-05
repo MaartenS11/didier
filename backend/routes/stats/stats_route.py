@@ -9,6 +9,6 @@ stats_blueprint.register_blueprint(command_stats_blueprint)
 def get_nested_routes():
     nested_routes = {
         "commands": "/stats/commands"
-
     }
+
     return {"nested": nested_routes}, 200
