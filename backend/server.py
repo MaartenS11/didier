@@ -1,45 +1,23 @@
-from discord.ext import ipc
+from .error_handlers import handler_404, handler_422
+from .routes.dm import dm_blueprint
+from .routes.ping import ping_blueprint
+from .routes.stats import stats_blueprint
 from functions.database import custom_commands
-import json
-from quart import Quart, jsonify, request
+from quart import Quart, jsonify
 from quart_cors import cors
-from time import time
 
 
+# Initialize app
 app = Quart(__name__)
 # TODO allow_origin=re.compile(r"http://localhost:.*")
 #      needs higher Python & Quart version
 app = cors(app, allow_origin="*")
-app.config.from_object(__name__)
+app.url_map.strict_slashes = False
 
-
-ipc_client = ipc.Client(secret_key="SOME_SECRET_KEY")
-
-
-@app.route("/ping", methods=["GET"])
-async def ping():
-    """
-    Send a ping request, monitors bot latency and endpoint time
-    """
-    latency = await ipc_client.request("get_bot_latency")
-
-    return jsonify({"bot_latency": latency, "response_sent": time()})
-
-
-@app.route("/dm", methods=["POST"])
-async def send_dm():
-    """
-    Send a DM to the given user
-    """
-    data = json.loads((await request.body).decode('UTF-8'))
-
-    dm = await ipc_client.request(
-        "send_dm",
-        user=int(data["userid"]),
-        message=data.get("message")
-    )
-
-    return jsonify({"response": dm})
+# Register blueprints
+app.register_blueprint(dm_blueprint)
+app.register_blueprint(ping_blueprint)
+app.register_blueprint(stats_blueprint)
 
 
 @app.route("/custom", methods=["GET"])
@@ -63,20 +41,16 @@ async def get_custom_command(command_id):
     command = custom_commands.get_by_id(command_id)
 
     if command is None:
-        return page_not_found("")
+        return handler_404("")
 
     return jsonify(command)
 
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return jsonify({"error": "No resource could be found matching the given URL."}), 404
+    return handler_404(e)
 
 
 @app.errorhandler(422)
 def unprocessable_entity(e):
-    return jsonify({"error": e}), 422
-
-
-if __name__ == "__main__":
-    app.run()
+    return handler_422(e)

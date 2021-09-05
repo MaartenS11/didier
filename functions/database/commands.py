@@ -1,5 +1,8 @@
 from enum import IntEnum
+from typing import Dict, List
 
+from database.db import session
+from database.models import CommandStats
 from functions.database import utils
 from functions.stringFormatters import leading_zero as lz
 import time
@@ -75,3 +78,17 @@ def _get_all():
 
     cursor.execute("SELECT * FROM command_stats")
     return cursor.fetchall()
+
+
+def query_command_stats() -> List[Dict]:
+    stats = []
+
+    for instance in session.query(CommandStats).order_by(CommandStats.day):
+        stats.append({
+            "day": instance.day,
+            "commands": instance.commands,
+            "slash_commands": instance.slash_commands,
+            "context_menus": instance.context_menus
+        })
+
+    return stats
