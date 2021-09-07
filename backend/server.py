@@ -1,6 +1,7 @@
 from werkzeug.exceptions import abort
 
 from .error_handlers import handler_404, handler_422
+from .json_encoder import CustomEncoder
 from .routes.dm import dm_blueprint
 from .routes.ping import ping_blueprint
 from .routes.stats import stats_blueprint
@@ -15,6 +16,7 @@ app = Quart(__name__)
 #      needs higher Python & Quart version
 app = cors(app, allow_origin="*")
 app.url_map.strict_slashes = False
+app.json_encoder = CustomEncoder
 
 # Register blueprints
 app.register_blueprint(dm_blueprint)

@@ -2,8 +2,8 @@ from enum import IntEnum
 from typing import Dict, List
 
 from database.db import session
+from database.utils import row_to_dict
 from database.models import CommandStats
-from functions.database import utils
 from functions.stringFormatters import leading_zero as lz
 import time
 
@@ -24,27 +24,16 @@ def _is_present(date: str) -> bool:
     """
     Check if a given date is present in the database
     """
-    connection = utils.connect()
-    cursor = connection.cursor()
-
-    cursor.execute("SELECT * FROM command_stats WHERE day = %s", (date,))
-    res = cursor.fetchone()
-
-    if res:
-        return True
-
-    return False
+    res = session.query(CommandStats).filter(CommandStats.day == date).scalar()
+    return res is not None
 
 
 def _add_date(date: str):
     """
     Add a date into the db
     """
-    connection = utils.connect()
-    cursor = connection.cursor()
-
-    cursor.execute("INSERT INTO command_stats(day, commands, slash_commands, context_menus) VALUES (%s, 0, 0, 0)", (date,))
-    connection.commit()
+    entry = CommandStats(day=date, commands=0, slash_commands=0, context_menus=0)
+    session.add(entry)
 
 
 def _update(date: str, inv: InvocationType):
@@ -55,40 +44,22 @@ def _update(date: str, inv: InvocationType):
     if not _is_present(date):
         _add_date(date)
 
-    connection = utils.connect()
-    cursor = connection.cursor()
+    column_name: str = ["commands", "slash_commands", "context_menus"][inv.value]
+    session.query(CommandStats).filter(CommandStats.day == date)\
+        .update({column_name: (getattr(CommandStats, column_name) + 1)})
 
-    column_name = ["commands", "slash_commands", "context_menus"][inv.value]
-
-    # String formatting is safe here because the input comes from above ^
-    cursor.execute(f"""
-                    UPDATE command_stats
-                        SET {column_name} = {column_name} + 1
-                    WHERE day = %s
-                    """, (date,))
-    connection.commit()
-
-
-def _get_all():
-    """
-    Get all rows
-    """
-    connection = utils.connect()
-    cursor = connection.cursor()
-
-    cursor.execute("SELECT * FROM command_stats")
-    return cursor.fetchall()
+    # Commit changes, including adding the date if necessary
+    session.commit()
 
 
 def query_command_stats() -> List[Dict]:
+    """
+    Return all rows as dicts
+    """
     stats = []
 
+    instance: CommandStats
     for instance in session.query(CommandStats).order_by(CommandStats.day):
-        stats.append({
-            "day": instance.day,
-            "commands": instance.commands,
-            "slash_commands": instance.slash_commands,
-            "context_menus": instance.context_menus
-        })
+        stats.append(row_to_dict(instance))
 
     return stats
