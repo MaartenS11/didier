@@ -33,7 +33,7 @@ class FootballSlash(commands.Cog):
     @_jpl_group.sub_command(name="update", description="Update de code voor deze competitie (owner-only)")
     async def _jpl_update_slash(self, interaction: SlashInteraction):
         if not await checks.isMe(interaction):
-            return await interaction.reply(f"Je hebt geen toegang tot dit commando.")
+            return await interaction.reply(f"Je hebt geen toegang tot dit commando.", ephemeral=True)
 
         code = get_jpl_code()
         config.config("jpl", code)
