@@ -26,26 +26,26 @@ class Birthdays(commands.Cog):
         """
         if member is not None:
             # A member was tagged
-            nameStr = "**{}**'s".format(member.display_name)
+            name_str = "**{}**'s".format(member.display_name)
             res = birthdays.get_user(member.id)
         else:
             # No member passed -> check the user's birthday
-            nameStr = "Jouw"
+            name_str = "Jouw"
             res = birthdays.get_user(ctx.author.id)
 
-        if not res:
+        if res is None:
             # Nothing found in the db for this member
-            return await ctx.send("{} verjaardag zit nog niet in de database.".format(nameStr))
+            return await ctx.send("{} verjaardag zit nog niet in de database.".format(name_str))
 
         # Create a datetime object of the upcoming birthday,
         # and a formatted string displaying the date
-        dayDatetime, timeString = self.dmToDatetime(res[0][0], res[0][1])
+        day_dt, time_string = self.dm_to_dt(res.day, res.month)
 
         # Find the weekday related to this day
-        weekday = timeFormatters.intToWeekday(dayDatetime.weekday()).lower()
+        weekday = timeFormatters.intToWeekday(day_dt.weekday()).lower()
 
         return await ctx.send("{} verjaardag staat ingesteld op **{} {}**.".format(
-            nameStr, weekday, timeString
+            name_str, weekday, time_string
         ))
 
     @birthday.command(name="Today", aliases=["Now"])
@@ -56,7 +56,7 @@ class Birthdays(commands.Cog):
         """
         # Create a datetime object for today
         dt = timeFormatters.dateTimeNow()
-        await ctx.send(self.getBirthdayOnDate(dt))
+        await ctx.send(self.get_bds_on_date(dt))
 
     @birthday.command(name="Tomorrow", aliases=["Tm", "Tmw"])
     async def tomorrow(self, ctx):
@@ -66,7 +66,7 @@ class Birthdays(commands.Cog):
         """
         # Create a datetime object for tomorrow
         dt = timeFormatters.dateTimeNow() + datetime.timedelta(days=1)
-        await ctx.send(self.getBirthdayOnDate(dt).replace("Vandaag", "Morgen").replace("vandaag", "morgen"))
+        await ctx.send(self.get_bds_on_date(dt).replace("Vandaag", "Morgen").replace("vandaag", "morgen"))
 
     @birthday.command(name="Week")
     async def week(self, ctx):
@@ -88,7 +88,7 @@ class Birthdays(commands.Cog):
         embed.set_author(name="Verjaardagen deze week")
 
         # Add all people of the coming week
-        for dayCounter in range(7):
+        for day_counter in range(7):
             dt += datetime.timedelta(days=1)
             res = birthdays.get_users_on_date(dt.day, dt.month)
 
@@ -97,10 +97,10 @@ class Birthdays(commands.Cog):
                 continue
 
             # Add everyone from this day into the dict
-            this_week[str(dayCounter)] = {"day": dt.day, "month": dt.month, "users": []}
+            this_week[str(day_counter)] = {"day": dt.day, "month": dt.month, "users": []}
 
             for user in res:
-                this_week[str(dayCounter)]["users"].append(user[0])
+                this_week[str(day_counter)]["users"].append(user.userid)
 
         # No one found
         if not this_week:
@@ -112,7 +112,7 @@ class Birthdays(commands.Cog):
         # For every day, add the list of users into the embed
         for day, value in this_week.items():
 
-            dayDatetime, timeString = self.dmToDatetime(int(value["day"]), int(value["month"]))
+            dayDatetime, timeString = self.dm_to_dt(int(value["day"]), int(value["month"]))
             weekday = timeFormatters.intToWeekday(dayDatetime.weekday())
 
             embed.add_field(name="{} {}".format(weekday, timeString),
@@ -121,7 +121,7 @@ class Birthdays(commands.Cog):
 
         await ctx.send(embed=embed)
 
-    def getBirthdayOnDate(self, dt):
+    def get_bds_on_date(self, dt):
         """
         Function to get all birthdays on a certain date.
         Returns a string right away to avoid more code duplication.
@@ -137,7 +137,7 @@ class Birthdays(commands.Cog):
         COC = self.client.get_guild(int(constants.CallOfCode))
 
         # Create a list of member objects of the people that have a birthday on this date
-        people = [COC.get_member(int(user[0])) for user in res]
+        people = [COC.get_member(user.userid) for user in res]
 
         if len(people) == 1:
             return "Vandaag is **{}** jarig.".format(people[0].display_name)
@@ -146,7 +146,7 @@ class Birthdays(commands.Cog):
             people[-1].display_name
         )
 
-    def dmToDatetime(self, day, month):
+    def dm_to_dt(self, day, month):
         """
         Converts a day + month to a datetime instance.
         :param day: the day in the date
@@ -162,14 +162,14 @@ class Birthdays(commands.Cog):
             year += 1
 
         # Create a datetime object for this birthday
-        timeString = "{}/{}/{}".format(
+        time_string = "{}/{}/{}".format(
             stringFormatters.leading_zero(str(day)),
             stringFormatters.leading_zero(str(month)),
             year
         )
 
-        dayDatetime = datetime.datetime.strptime(timeString, "%d/%m/%Y")
-        return dayDatetime, timeString
+        day_dt = datetime.datetime.strptime(time_string, "%d/%m/%Y")
+        return day_dt, time_string
 
     @birthday.command(name="Set", usage="[DD/MM/YYYY]")
     async def set(self, ctx, date=None, member: discord.Member = None):
@@ -219,7 +219,7 @@ class Birthdays(commands.Cog):
 
         # Add into the db
         birthdays.add_user(ctx.author.id, day, month, year)
-        return await ctx.send("Je verjaardag is toegevoegd aan de database.")
+        return await ctx.message.add_reaction("✅")
 
 
 def setup(client):
