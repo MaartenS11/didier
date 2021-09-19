@@ -1,6 +1,9 @@
-from database import Base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, String, Integer, BigInteger, Numeric, Date, Boolean
 from typing import Set
+
+
+Base = declarative_base()
 
 
 # TODO fill in non-nulls everywhere
