@@ -5,6 +5,7 @@ import random
 import time
 
 
+# TODO Fix currency/nightly when this is done
 def getOrAddUser(userid):
     connection = utils.connect()
     cursor = connection.cursor()

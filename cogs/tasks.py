@@ -36,7 +36,7 @@ class Tasks(commands.Cog):
         with open("files/lastTasks.json", "r") as fp:
             lastTasks = json.load(fp)
         if int(self.getCurrentHour()) == 4 and int(time.time()) - int(lastTasks["interest"]) > 10000:
-            users = currency.getAllRows()
+            users = currency.get_all_rows()
             bitcoinPrice = self.getCurrentBitcoinPrice()
             for user in users:
                 # People in prison don't get interest

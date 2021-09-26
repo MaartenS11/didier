@@ -34,8 +34,8 @@ class Leaderboards(commands.Cog):
 
     @leaderboard.command(name="Dinks", aliases=["Cash"], hidden=True)
     async def dinks(self, ctx):
-        entries = currency.getAllRows()
-        platDinks = currency.getAllPlatDinks()
+        entries = currency.get_all_rows()
+        platDinks = currency.get_all_plat_dinks()
 
         # Take platinum dinks into account
         for i, user in enumerate(entries):
@@ -77,7 +77,7 @@ class Leaderboards(commands.Cog):
 
     @leaderboard.command(name="Bitcoin", aliases=["Bc"], hidden=True)
     async def bitcoin(self, ctx):
-        users = currency.getAllRows()
+        users = currency.get_all_rows()
         boardTop = []
         for i, user in enumerate(sorted(users, key=lambda x: x[8], reverse=True)):
             # Don't create an empty leaderboard

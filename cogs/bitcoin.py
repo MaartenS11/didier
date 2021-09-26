@@ -25,7 +25,7 @@ class Bitcoin(commands.Cog):
         :param ctx: Discord Context
         """
         price = self.getPrice()
-        bc = float(currency.getOrAddUser(ctx.author.id)[8])
+        bc = float(currency.get_or_add_user(ctx.author.id)[8])
 
         currentTime = timeFormatters.dateTimeNow()
         currentTimeFormatted = currentTime.strftime('%m/%d/%Y om %H:%M:%S')
@@ -78,9 +78,9 @@ class Bitcoin(commands.Cog):
         purchased = round(float(amount) / price, 8)
 
         # Update the db
-        currency.update(ctx.author.id, "dinks", float(currency.dinks(ctx.author.id)) - float(amount))
+        currency.update(ctx.author.id, "dinks", currency.dinks(ctx.author.id) - float(amount))
         currency.update(ctx.author.id, "bitcoins",
-                        float(currency.getOrAddUser(ctx.author.id)[8]) + float(purchased))
+                        float(currency.get_or_add_user(ctx.author.id).bitcoins) + float(purchased))
 
         await ctx.send("**{}** heeft **{:,}** Bitcoin{} gekocht voor **{:,}** Didier Dink{}!"
                        .format(ctx.author.display_name, purchased, checks.pluralS(purchased),
@@ -94,14 +94,14 @@ class Bitcoin(commands.Cog):
         :param amount: the amount of Bitcoins the user wants to sell
         """
         if str(amount).lower() == "all":
-            amount = float(currency.getOrAddUser(ctx.author.id)[8])
+            amount = float(currency.get_or_add_user(ctx.author.id)[8])
 
         try:
             amount = float(amount)
             if amount <= 0:
                 raise ValueError
 
-            bc = float(currency.getOrAddUser(ctx.author.id)[8])
+            bc = float(currency.get_or_add_user(ctx.author.id)[8])
 
             if bc == 0.0:
                 # User has no Bitcoins
@@ -112,7 +112,7 @@ class Bitcoin(commands.Cog):
                                .format(ctx.author.display_name))
             else:
                 price = self.getPrice()
-                dinks = float(currency.dinks(ctx.author.id))
+                dinks = currency.dinks(ctx.author.id)
 
                 currency.update(ctx.author.id, "bitcoins", bc - amount)
                 currency.update(ctx.author.id, "dinks", dinks + (price * amount))

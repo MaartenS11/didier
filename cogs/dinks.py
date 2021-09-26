@@ -66,7 +66,7 @@ class Dinks(commands.Cog):
         Command that shows the user's Didier Dinks & Platinum Dinks
         :param ctx: Discord Context
         """
-        dinks = currency.dinksAll(ctx.author.id)
+        dinks = currency.dinks_all(ctx.author.id)
 
         answer = "**{}** heeft **{:,}** Didier Dink{}"\
             .format(ctx.author.display_name, math.floor(dinks["dinks"]), checks.pluralS(dinks["dinks"]))
@@ -148,7 +148,7 @@ class Dinks(commands.Cog):
         """
         # 0  1     2     3              4            5      6       7       8  9       10
         # ID dinks level investedamount investeddays profit defense offense bc nightly streak
-        response = currency.getOrAddUser(ctx.author.id)
+        response = currency.get_or_add_user(ctx.author.id)
 
         # Calculate the cost to level your bank
         interestLevelPrice = round(math.pow(1.28, int(response[2])) * 300)
@@ -179,7 +179,7 @@ class Dinks(commands.Cog):
         Command that shows the user's bank stats.
         :param ctx: Discord Context
         """
-        response = currency.getOrAddUser(ctx.author.id)
+        response = currency.get_or_add_user(ctx.author.id)
 
         # Calculate the prices to level stats up
         defense = int(response[6])
@@ -213,7 +213,7 @@ class Dinks(commands.Cog):
         increasing interest.
         :param ctx: Discord Context
         """
-        response = currency.getOrAddUser(ctx.author.id)
+        response = currency.get_or_add_user(ctx.author.id)
         interestLevelPrice = float(math.pow(1.28, int(response[2])) * 300)
 
         # Check if user has enough Didier Dinks to do this
@@ -233,7 +233,7 @@ class Dinks(commands.Cog):
         increasing capacity & rob chances.
         :param ctx: Discord Context
         """
-        response = currency.getOrAddUser(ctx.author.id)
+        response = currency.get_or_add_user(ctx.author.id)
 
         offense = int(response[7])
         capacity = calcCapacity(offense)
@@ -256,7 +256,7 @@ class Dinks(commands.Cog):
         increasing chance of failed robs by others.
         :param ctx: Discord Context
         """
-        response = currency.getOrAddUser(ctx.author.id)
+        response = currency.get_or_add_user(ctx.author.id)
         defense = int(response[6])
         defenseLevelPrice = math.floor(math.pow(1.4, defense) * 365) if defense < 38 else 5 * calcCapacity(defense - 6)
 
@@ -287,7 +287,7 @@ class Dinks(commands.Cog):
         elif not checks.isValidAmount(ctx, amount[0])[0]:
             await ctx.send(checks.isValidAmount(ctx, amount[0])[1])
         else:
-            user = currency.getOrAddUser(ctx.author.id)
+            user = currency.get_or_add_user(ctx.author.id)
             if str(amount[0]).lower() == "all":
                 amount[0] = user[1]
 
@@ -307,7 +307,7 @@ class Dinks(commands.Cog):
         :param args:
         :return:
         """
-        user = currency.getOrAddUser(ctx.author.id)
+        user = currency.get_or_add_user(ctx.author.id)
         args = list(args)
         claimAll = False
 
@@ -546,8 +546,8 @@ class Dinks(commands.Cog):
             return False, None, None
 
         # Check the database for these users
-        user1 = currency.getOrAddUser(ctx.author.id)
-        user2 = currency.getOrAddUser(target.id)
+        user1 = currency.get_or_add_user(ctx.author.id)
+        user2 = currency.get_or_add_user(target.id)
 
         # Can't rob without Didier Dinks
         if float(user1[1]) < 1.0:
